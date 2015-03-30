@@ -1,24 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>519</width>
+    <height>395</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>521</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Hash Killer</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Wordlists</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>519</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionExit_GUI"/>
+    <addaction name="actionExit_HashCat"/>
+    <addaction name="actionExit_All"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionAuthor"/>
+    <addaction name="actionQHashcatGUi"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionExit_GUI">
+   <property name="text">
+    <string>Exit GUI</string>
+   </property>
+  </action>
+  <action name="actionExit_HashCat">
+   <property name="text">
+    <string>Exit HashCat</string>
+   </property>
+  </action>
+  <action name="actionExit_All">
+   <property name="text">
+    <string>Exit All</string>
+   </property>
+  </action>
+  <action name="actionAuthor">
+   <property name="text">
+    <string>Author</string>
+   </property>
+  </action>
+  <action name="actionQHashcatGUi">
+   <property name="text">
+    <string>QHashcatGUi</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections/>
 </ui>
