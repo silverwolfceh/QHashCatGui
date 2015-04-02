@@ -1,11 +1,268 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QUuid>
+#include <QFile>
+#include <QClipboard>
+#include <QMimeData>
+#include <QTextStream>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QProcess>
+#include <QDebug>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    crackingProcess = new QProcess(this);
+    initializeHashType(ui->comboBox);
+    initializeOutputType(ui->comboBox_2);
+    connect(ui->btnclipboard,SIGNAL(clicked()),this,SLOT(handleClipboardHash()));
+    connect(ui->btnBrowseInput,SIGNAL(clicked()),this,SLOT(handleOpenInput()));
+    connect(ui->btnBrowseOutput,SIGNAL(clicked()),this,SLOT(handleOpenOutput()));
+    connect(crackingProcess,SIGNAL(started()),this,SLOT(processStarted()));
+    connect(crackingProcess,SIGNAL(finished(int, QProcess::ExitStatus)),this,SLOT(processDone(int,QProcess::ExitStatus)));
+    connect(crackingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(showLog()));
+    connect(ui->btnAction,SIGNAL(clicked()),this,SLOT(startCracking()));
+}
+
+void MainWindow::startCracking()
+{
+    QStringList args;
+    args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
+    args << "--outfile=" + ui->txtOutputFile->text(); //output
+    args << "--outfile-format=" + ui->comboBox_2->currentData().toString();
+    args << "--threads=32";
+    args << ui->txtInputFile->text(); //hash file
+    for(int i = 0; i < ui->listWidget->count(); i++)
+        args << ui->listWidget->item(i)->text();
+
+    //crackingProcess->startDetached(ui->txtProg->text(),args);
+    crackingProcess->start(ui->txtProg->text(),args);
+    if(!crackingProcess->waitForStarted())
+    {
+        ui->txtLog->append("Start failed");
+        return;
+    }
+    ui->txtLog->append("Start running");
+    if(!crackingProcess->waitForFinished(-1))
+    {
+        ui->txtLog->append("Error");
+        return;
+    }
+}
+
+void MainWindow::showLog()
+{
+    ui->txtLog->append(crackingProcess->readAllStandardOutput());
+}
+
+
+void MainWindow::processStarted()
+{
+
+}
+
+void MainWindow::processDone(int, QProcess::ExitStatus)
+{
+
+}
+
+void MainWindow::handleOpenInput()
+{
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    QFile file(fname);
+    if(!file.exists())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("File " + fname + " is not exist!");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.show();
+    }
+    ui->txtInputFile->setText(fname);
+}
+
+void MainWindow::handleOpenOutput()
+{
+    QString fname = QFileDialog::getSaveFileName(this, tr("Output File..."),QDir::currentPath(), tr("Text Files (*.txt);;All Files (*)"));
+    QFile file(fname);
+    if(file.exists())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("File " + fname + " will be override");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.show();
+    }
+    ui->txtOutputFile->setText(fname);
+}
+
+void MainWindow::handleClipboardHash()
+{
+    QString hashs = QApplication::clipboard()->mimeData()->text();
+    QString filename = QUuid::createUuid().toString();
+    QFile file("/tmp/" + filename);
+    while(file.exists())
+    {
+        filename = QUuid::createUuid().toString();
+        file.setFileName("/tmp/" + filename);
+    }
+    file.open(QIODevice::ReadWrite | QIODevice::Text);
+    QTextStream out(&file);
+    out << hashs;
+    file.close();
+    ui->txtInputFile->setText(file.fileName());
+}
+
+void MainWindow::initializeOutputType(QComboBox *com)
+{
+    outputTypeMap.insert(1,"hash[:salt]");
+    outputTypeMap.insert(2,"plain");
+    outputTypeMap.insert(3,"hash[:salt]:plain");
+    outputTypeMap.insert(4,"hex_plain");
+    outputTypeMap.insert(5,"hash[:salt]:hex_plain");
+    outputTypeMap.insert(6,"plain:hex_plain");
+    outputTypeMap.insert(7,"hash[:salt]:plain:hex_plain");
+    outputTypeMap.insert(8,"crackpos");
+    outputTypeMap.insert(9,"hash[:salt]:crackpos");
+    outputTypeMap.insert(10,"plain:crackpos");
+    outputTypeMap.insert(11,"hash[:salt]:plain:crackpos");
+    outputTypeMap.insert(12,"hex_plain:crackpos");
+    outputTypeMap.insert(13,"hash[:salt]:hex_plain:crackpos");
+    outputTypeMap.insert(14,"plain:hex_plain:crackpos");
+    outputTypeMap.insert(15,"hash[:salt]:plain:hex_plain:crackpos");
+    QList<QString> Values = outputTypeMap.values();
+    for(int i = 0; i < Values.count(); i++)
+    {
+        com->addItem(Values[i],outputTypeMap.key(Values[i]));
+    }
+
+}
+
+void MainWindow::initializeHashType(QComboBox *com)
+{
+    hashTypeMap.insert(0,"MD5");
+    hashTypeMap.insert(10,"md5($pass.$salt)");
+    hashTypeMap.insert(20,"md5($salt.$pass)");
+    hashTypeMap.insert(30,"md5(unicode($pass).$salt)");
+    hashTypeMap.insert(40,"md5($salt.unicode($pass))");
+    hashTypeMap.insert(50,"HMAC-MD5 (key= $pass)");
+    hashTypeMap.insert(60,"HMAC-MD5 (key= $salt)");
+    hashTypeMap.insert(100,"SHA1");
+    hashTypeMap.insert(110,"sha1($pass.$salt)");
+    hashTypeMap.insert(120,"sha1($salt.$pass)");
+    hashTypeMap.insert(130,"sha1(unicode($pass).$salt)");
+    hashTypeMap.insert(140,"sha1($salt.unicode($pass))");
+    hashTypeMap.insert(150,"HMAC-SHA1 (key= $pass)");
+    hashTypeMap.insert(160,"HMAC-SHA1 (key= $salt)");
+    hashTypeMap.insert(200,"MySQL323");
+    hashTypeMap.insert(300,"MySQL4.1/MySQL5");
+    hashTypeMap.insert(400,"phpass, MD5(Wordpress), MD5(phpBB3), MD5(Joomla)");
+    hashTypeMap.insert(500,"md5crypt, MD5(Unix), FreeBSD MD5, Cisco-IOS MD5");
+    hashTypeMap.insert(900,"MD4");
+    hashTypeMap.insert(1000,"NTLM");
+    hashTypeMap.insert(1100,"Domain Cached Credentials, mscash");
+    hashTypeMap.insert(1400,"SHA256");
+    hashTypeMap.insert(1410,"sha256($pass.$salt)");
+    hashTypeMap.insert(1420,"sha256($salt.$pass)");
+    hashTypeMap.insert(1430,"sha256(unicode($pass).$salt)");
+    hashTypeMap.insert(1440,"sha256($salt.unicode($pass))");
+    hashTypeMap.insert(1450,"HMAC-SHA256 (key=$pass)");
+    hashTypeMap.insert(1460,"HMAC-SHA256 (key=$salt)");
+    hashTypeMap.insert(1600,"md5apr1, MD5(APR), Apache MD5");
+    hashTypeMap.insert(1700,"SHA512");
+    hashTypeMap.insert(1710,"sha512($pass.$salt)");
+    hashTypeMap.insert(1720,"sha512($salt.$pass)");
+    hashTypeMap.insert(1730,"sha512(unicode($pass).$salt)");
+    hashTypeMap.insert(1740,"sha512($salt.unicode($pass))");
+    hashTypeMap.insert(1750,"HMAC-SHA512 (key= $pass)");
+    hashTypeMap.insert(1760,"HMAC-SHA512 (key= $salt)");
+    hashTypeMap.insert(1800,"SHA-512(Unix)");
+    hashTypeMap.insert(2400,"Cisco-PIX MD5");
+    hashTypeMap.insert(2410,"Cisco-ASA MD5");
+    hashTypeMap.insert(2500,"WPA/WPA2");
+    hashTypeMap.insert(2600,"Double MD5");
+    hashTypeMap.insert(3200,"bcrypt, Blowfish(OpenBSD)");
+    hashTypeMap.insert(3300,"MD5(Sun)");
+    hashTypeMap.insert(3500,"md5(md5(md5($pass)))");
+    hashTypeMap.insert(3610,"md5(md5($salt).$pass)");
+    hashTypeMap.insert(3710,"md5($salt.md5($pass))");
+    hashTypeMap.insert(3720,"md5($pass.md5($salt))");
+    hashTypeMap.insert(3810,"md5($salt.$pass.$salt)");
+    hashTypeMap.insert(3910,"md5(md5($pass).md5($salt))");
+    hashTypeMap.insert(4010,"md5($salt.md5($salt.$pass))");
+    hashTypeMap.insert(4110,"md5($salt.md5($pass.$salt))");
+    hashTypeMap.insert(4210,"md5($username.0.$pass)");
+    hashTypeMap.insert(4300,"md5(strtoupper(md5($pass)))");
+    hashTypeMap.insert(4400,"md5(sha1($pass))");
+    hashTypeMap.insert(4500,"Double SHA1");
+    hashTypeMap.insert(4600,"sha1(sha1(sha1($pass)))");
+    hashTypeMap.insert(4700,"sha1(md5($pass))");
+    hashTypeMap.insert(4710,"sha1($salt.$pass.$salt)");
+    hashTypeMap.insert(4800,"MD5(Chap), iSCSI CHAP authentication");
+    hashTypeMap.insert(5000,"SHA-3(Keccak)");
+    hashTypeMap.insert(5100,"Half MD5");
+    hashTypeMap.insert(5200,"Password Safe SHA-256");
+    hashTypeMap.insert(5300,"IKE-PSK MD5");
+    hashTypeMap.insert(5400,"IKE-PSK SHA1");
+    hashTypeMap.insert(5500,"NetNTLMv1-VANILLA / NetNTLMv1-ESS");
+    hashTypeMap.insert(5600,"NetNTLMv2");
+    hashTypeMap.insert(5700,"Cisco-IOS SHA256");
+    hashTypeMap.insert(5800,"Android PIN");
+    hashTypeMap.insert(6300,"AIX {smd5}");
+    hashTypeMap.insert(6400,"AIX {ssha256}");
+    hashTypeMap.insert(6500,"AIX {ssha512}");
+    hashTypeMap.insert(6700,"AIX {ssha1}");
+    hashTypeMap.insert(6900,"GOST, GOST R 34.11-94");
+    hashTypeMap.insert(7000,"Fortigate (FortiOS)");
+    hashTypeMap.insert(7100,"OS X v10.8 / v10.9");
+    hashTypeMap.insert(7200,"GRUB 2");
+    hashTypeMap.insert(7300,"IPMI2 RAKP HMAC-SHA1");
+    hashTypeMap.insert(7400,"sha256crypt, SHA256(Unix)");
+    hashTypeMap.insert(7900,"Drupal7");
+    hashTypeMap.insert(8400,"WBB3, Woltlab Burning Board 3");
+    hashTypeMap.insert(8900,"scrypt");
+    hashTypeMap.insert(9200,"Cisco $8$");
+    hashTypeMap.insert(9300,"Cisco $9$");
+    hashTypeMap.insert(9800,"Radmin2");
+    hashTypeMap.insert( 10000,"Django (PBKDF2-SHA256)");
+    hashTypeMap.insert( 10200,"Cram MD5");
+    hashTypeMap.insert( 10300,"SAP CODVN H (PWDSALTEDHASH) iSSHA-1");
+    hashTypeMap.insert( 99999,"Plaintext");
+    hashTypeMap.insert(11,"Joomla < 2.5.18");
+    hashTypeMap.insert(12,"PostgreSQL");
+    hashTypeMap.insert(21,"osCommerce, xt:Commerce");
+    hashTypeMap.insert(23,"Skype");
+    hashTypeMap.insert(101,"nsldap, SHA-1(Base64), Netscape LDAP SHA");
+    hashTypeMap.insert(111,"nsldaps, SSHA-1(Base64), Netscape LDAP SSHA");
+    hashTypeMap.insert(112,"Oracle 11g/12c");
+    hashTypeMap.insert(121,"SMF > v1.1");
+    hashTypeMap.insert(122,"OS X v10.4, v10.5, v10.6");
+    hashTypeMap.insert(123,"EPi");
+    hashTypeMap.insert(124,"Django (SHA-1)");
+    hashTypeMap.insert(131,"MSSQL(2000)");
+    hashTypeMap.insert(132,"MSSQL(2005)");
+    hashTypeMap.insert(133,"PeopleSoft");
+    hashTypeMap.insert(141,"EPiServer 6.x < v4");
+    hashTypeMap.insert(1421,"hMailServer");
+    hashTypeMap.insert(1441,"EPiServer 6.x > v4");
+    hashTypeMap.insert(1711,"SSHA-512(Base64), LDAP {SSHA512}");
+    hashTypeMap.insert(1722,"OS X v10.7");
+    hashTypeMap.insert(1731,"MSSQL(2012 & 2014)");
+    hashTypeMap.insert(2611,"vBulletin < v3.8.5");
+    hashTypeMap.insert(2612,"PHPS");
+    hashTypeMap.insert(2711,"vBulletin > v3.8.5");
+    hashTypeMap.insert(2811,"IPB2+, MyBB1.2+");
+    hashTypeMap.insert(3711,"Mediawiki B type");
+    hashTypeMap.insert(3721,"WebEdition CMS");
+    hashTypeMap.insert(7600,"Redmine Project Management Web App");
+
+    QList<QString> Values = hashTypeMap.values();
+    for(int i = 0; i < Values.count(); i++)
+    {
+        com->addItem(Values[i],hashTypeMap.key(Values[i]));
+    }
 }
 
 MainWindow::~MainWindow()
