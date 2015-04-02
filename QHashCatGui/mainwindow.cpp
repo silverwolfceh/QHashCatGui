@@ -19,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     crackingProcess = new QProcess(this);
     initializeHashType(ui->comboBox);
     initializeOutputType(ui->comboBox_2);
+    loadWordList();
+    ui->txtSalt->setDisabled(true);
     connect(ui->btnclipboard,SIGNAL(clicked()),this,SLOT(handleClipboardHash()));
     connect(ui->btnBrowseInput,SIGNAL(clicked()),this,SLOT(handleOpenInput()));
     connect(ui->btnBrowseOutput,SIGNAL(clicked()),this,SLOT(handleOpenOutput()));
@@ -26,6 +28,25 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(crackingProcess,SIGNAL(finished(int, QProcess::ExitStatus)),this,SLOT(processDone(int,QProcess::ExitStatus)));
     connect(crackingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(showLog()));
     connect(ui->btnAction,SIGNAL(clicked()),this,SLOT(startCracking()));
+    connect(ui->btnCreate,SIGNAL(clicked()),this,SLOT(createHashFile()));
+    connect(ui->btnAdd,SIGNAL(clicked()),this,SLOT(addWordList()));
+    connect(ui->btnRemove,SIGNAL(clicked()),this,SLOT(deleteWordList()));
+    connect(ui->btnBrowseSalt,SIGNAL(clicked()),this,SLOT(handleOpenSalt()));
+    connect(ui->btnBrowseProg,SIGNAL(clicked()),this,SLOT(handleOpenProg()));
+    connect(ui->btnUp,SIGNAL(clicked()),this,SLOT(moveWordUp()));
+    connect(ui->btnDown,SIGNAL(clicked()),this,SLOT(moveWordDown()));
+    QStringList caption;
+    caption << "Crack me guy!";
+    caption << "Power by ANBU!";
+    caption << "ANBU Team";
+    caption << "Design by SilverWolf";
+    int captNum = qrand() % caption.count();
+    ui->btnAction->setText(caption[captNum]);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    saveWordList();
 }
 
 void MainWindow::startCracking()
@@ -34,24 +55,127 @@ void MainWindow::startCracking()
     args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
     args << "--outfile=" + ui->txtOutputFile->text(); //output
     args << "--outfile-format=" + ui->comboBox_2->currentData().toString();
-    args << "--threads=32";
+    args << "--threads=" + ui->txtThread->text();
+    if(ui->txtSalt->text().simplified() != "")
+        args << "--salt-file=" + ui->txtSalt->text();
     args << ui->txtInputFile->text(); //hash file
     for(int i = 0; i < ui->listWidget->count(); i++)
         args << ui->listWidget->item(i)->text();
-
-    //crackingProcess->startDetached(ui->txtProg->text(),args);
+    ui->btnAction->setEnabled(false);
+    ui->tabWidget->setCurrentWidget(ui->tab_3);
     crackingProcess->start(ui->txtProg->text(),args);
     if(!crackingProcess->waitForStarted())
     {
+        ui->btnAction->setEnabled(true);
         ui->txtLog->append("Start failed");
         return;
     }
-    ui->txtLog->append("Start running");
-    if(!crackingProcess->waitForFinished(-1))
+}
+
+void MainWindow::moveWordDown()
+{
+    QList<QListWidgetItem *> listItems = ui->listWidget->selectedItems();
+    if(listItems.count() == 0) return;
+    if(listItems.count() > 1)
     {
-        ui->txtLog->append("Error");
+        QMessageBox msgBox(this);
+        msgBox.setText("Move one item one time");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
         return;
     }
+    if(ui->listWidget->row(listItems[0]) == ui->listWidget->count() - 1) return;
+    int cur = ui->listWidget->row(listItems[0]);
+    QString below = ui->listWidget->item(cur + 1)->text();
+    QString current = ui->listWidget->item(cur)->text();
+    ui->listWidget->takeItem(cur);
+    ui->listWidget->insertItem(cur,below);
+    ui->listWidget->takeItem(cur+1);
+    ui->listWidget->insertItem(cur+1,current);
+
+}
+
+void MainWindow::moveWordUp()
+{
+    QList<QListWidgetItem *> listItems = ui->listWidget->selectedItems();
+    if(listItems.count() == 0) return;
+    if(listItems.count() > 1)
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("Move one item one time");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        return;
+    }
+    if(ui->listWidget->row(listItems[0]) == 0) return;
+    int cur = ui->listWidget->row(listItems[0]);
+    QString above = ui->listWidget->item(cur - 1)->text();
+    QString current = ui->listWidget->item(cur)->text();
+    ui->listWidget->takeItem(cur);
+    ui->listWidget->insertItem(cur,above);
+    ui->listWidget->takeItem(cur-1);
+    ui->listWidget->insertItem(cur-1,current);
+}
+
+void MainWindow::saveWordList(QObject*)
+{
+    QString wordlist = "";
+    for(int i = 0; i < ui->listWidget->count();i++)
+        wordlist.append(ui->listWidget->item(i)->text() + "\n");
+    wordlist = wordlist.trimmed();
+    QFile file("qhashgui.wl");
+    file.open(QIODevice::Truncate | QIODevice::ReadWrite | QIODevice::Text);
+    QTextStream out(&file);
+    out << wordlist;
+    file.close();
+}
+
+void MainWindow::loadWordList()
+{
+    ui->listWidget->clear();
+    QFile file("qhashgui.wl");
+    if(!file.exists() || !file.open(QIODevice::ReadOnly))
+        return;
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        if(line.trimmed().simplified().size() == 0) continue;
+        ui->listWidget->addItem(line.trimmed().simplified());
+    }
+}
+
+void MainWindow::addWordList()
+{
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    QFile file(fname);
+    if(!file.exists())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("File " + fname + " is not exist!");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        return;
+    }
+    for(int i = 0; i < ui->listWidget->count();i++)
+    {
+        if(ui->listWidget->item(i)->text().compare(fname) == 0)
+        {
+            QMessageBox msgBox(this);
+            msgBox.setText("Wordlist " + fname + " is already exist!");
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.exec();
+            return;
+        }
+    }
+    ui->listWidget->addItem(fname);
+}
+
+void MainWindow::deleteWordList()
+{
+    QList<QListWidgetItem *> listItem = ui->listWidget->selectedItems();
+    for(int i = 0; i < listItem.count(); i++)
+        ui->listWidget->takeItem(ui->listWidget->row(listItem[i]));
 }
 
 void MainWindow::showLog()
@@ -62,12 +186,46 @@ void MainWindow::showLog()
 
 void MainWindow::processStarted()
 {
+    ui->tab_3->setFocus();
 
 }
 
 void MainWindow::processDone(int, QProcess::ExitStatus)
 {
+    ui->txtLog->append("-----Finished-----");
+    ui->btnAction->setEnabled(true);
+}
 
+void MainWindow::handleOpenSalt()
+{
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open salt file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    if(fname.simplified() == "") return;
+    QFile file(fname);
+    if(!file.exists())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("File " + fname + " is not exist!");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        return;
+    }
+    ui->txtSalt->setText(fname);
+}
+
+void MainWindow::handleOpenProg()
+{
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hashcat client file..."),QDir::currentPath(), tr("All Files (*.*)"));
+    if(fname.simplified() == "") return;
+    QFile file(fname);
+    if(!file.exists())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("File " + fname + " is not exist!");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        return;
+    }
+    ui->txtProg->setText(fname);
 }
 
 void MainWindow::handleOpenInput()
@@ -76,10 +234,11 @@ void MainWindow::handleOpenInput()
     QFile file(fname);
     if(!file.exists())
     {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText("File " + fname + " is not exist!");
         msgBox.setIcon(QMessageBox::Warning);
-        msgBox.show();
+        msgBox.exec();
+        return;
     }
     ui->txtInputFile->setText(fname);
 }
@@ -90,10 +249,10 @@ void MainWindow::handleOpenOutput()
     QFile file(fname);
     if(file.exists())
     {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText("File " + fname + " will be override");
         msgBox.setIcon(QMessageBox::Warning);
-        msgBox.show();
+        msgBox.exec();
     }
     ui->txtOutputFile->setText(fname);
 }
@@ -101,18 +260,29 @@ void MainWindow::handleOpenOutput()
 void MainWindow::handleClipboardHash()
 {
     QString hashs = QApplication::clipboard()->mimeData()->text();
-    QString filename = QUuid::createUuid().toString();
-    QFile file("/tmp/" + filename);
+    QString filename = QUuid::createUuid().toString().left(5).right(4);
+    QFile file("/tmp/hash_" + filename);
     while(file.exists())
     {
         filename = QUuid::createUuid().toString();
-        file.setFileName("/tmp/" + filename);
+        file.setFileName("/tmp/hash_" + filename);
     }
     file.open(QIODevice::ReadWrite | QIODevice::Text);
     QTextStream out(&file);
     out << hashs;
     file.close();
     ui->txtInputFile->setText(file.fileName());
+}
+
+void MainWindow::createHashFile()
+{
+    QApplication::clipboard()->setText(ui->txtHashEdit->toPlainText());
+    QMessageBox msgBox(this);
+    msgBox.setText("Hash file created");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.exec();
+    handleClipboardHash();
+    ui->tabWidget->setCurrentWidget(ui->tab);
 }
 
 void MainWindow::initializeOutputType(QComboBox *com)
@@ -137,6 +307,7 @@ void MainWindow::initializeOutputType(QComboBox *com)
     {
         com->addItem(Values[i],outputTypeMap.key(Values[i]));
     }
+    com->setCurrentIndex(2);
 
 }
 
