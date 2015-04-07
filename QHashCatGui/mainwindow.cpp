@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QDebug>
+#include <QStandardPaths>
+#include <QDesktopServices>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -35,22 +37,39 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnBrowseProg,SIGNAL(clicked()),this,SLOT(handleOpenProg()));
     connect(ui->btnUp,SIGNAL(clicked()),this,SLOT(moveWordUp()));
     connect(ui->btnDown,SIGNAL(clicked()),this,SLOT(moveWordDown()));
-    QStringList caption;
-    caption << "Crack me guy!";
-    caption << "Power by ANBU!";
-    caption << "ANBU Team";
-    caption << "Design by SilverWolf";
-    int captNum = qrand() % caption.count();
-    ui->btnAction->setText(caption[captNum]);
+    ui->txtInputFile->setText(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/input.txt");
+    ui->txtOutputFile->setText(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/output.txt");
+#ifdef Q_OS_WIN32
+    ui->txtProg->setText("hashcat-cli32.exe");
+#endif
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *)
 {
     saveWordList();
 }
 
 void MainWindow::startCracking()
 {
+    QFileInfo file(ui->txtProg->text());
+    if(!file.exists())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("Hashcat not found! Please download it");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+        QDesktopServices::openUrl(QUrl("http://hashcat.net/hashcat/"));
+        return;
+    }
+    QDir dir = file.absoluteDir();
+    if(dir.entryList(QStringList() << "eula.accepted").count() == 0)
+    {
+        QFile file(dir.path() + QDir::separator() + "eula.accepted");
+        file.open(QIODevice::ReadWrite | QIODevice::Text);
+        QTextStream out(&file);
+        out << "1\0";
+        file.close();
+    }
     QStringList args;
     args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
     args << "--outfile=" + ui->txtOutputFile->text(); //output
@@ -187,6 +206,13 @@ void MainWindow::showLog()
 void MainWindow::processStarted()
 {
     ui->tab_3->setFocus();
+    QStringList caption;
+    caption << "Crack me guy!";
+    caption << "Power by ANBU!";
+    caption << "ANBU Team";
+    caption << "Design by SilverWolf";
+    int captNum = qrand() % caption.count();
+    ui->btnAction->setText(caption[captNum]);
 
 }
 
@@ -261,11 +287,19 @@ void MainWindow::handleClipboardHash()
 {
     QString hashs = QApplication::clipboard()->mimeData()->text();
     QString filename = QUuid::createUuid().toString().left(5).right(4);
+#ifdef Q_OS_WIN32
+    QFile file("%TEMP%/hash_" + filename);
+#else
     QFile file("/tmp/hash_" + filename);
+#endif
     while(file.exists())
     {
         filename = QUuid::createUuid().toString();
+#ifdef Q_OS_WIN32
+        file.setFileName("%TEMP%/hash_" + filename);
+#else
         file.setFileName("/tmp/hash_" + filename);
+#endif
     }
     file.open(QIODevice::ReadWrite | QIODevice::Text);
     QTextStream out(&file);
@@ -277,11 +311,11 @@ void MainWindow::handleClipboardHash()
 void MainWindow::createHashFile()
 {
     QApplication::clipboard()->setText(ui->txtHashEdit->toPlainText());
+    handleClipboardHash();
     QMessageBox msgBox(this);
-    msgBox.setText("Hash file created");
+    msgBox.setText("Hash file created in: " + ui->txtInputFile->text());
     msgBox.setIcon(QMessageBox::Information);
     msgBox.exec();
-    handleClipboardHash();
     ui->tabWidget->setCurrentWidget(ui->tab);
 }
 

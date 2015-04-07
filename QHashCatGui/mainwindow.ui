@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>519</width>
-    <height>344</height>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,8 +28,36 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
+    <widget class="QWidget" name="tab_4">
+     <attribute name="title">
+      <string>Hash Panel</string>
+     </attribute>
+     <widget class="QTextEdit" name="txtHashEdit">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>511</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnCreate">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>242</y>
+        <width>131</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create Hash File</string>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
       <string>Hash Killer</string>
@@ -246,19 +274,6 @@
        <string>Browse</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_7">
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>300</y>
-        <width>51</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Prog.</string>
-      </property>
-     </widget>
      <widget class="QLabel" name="label_8">
       <property name="geometry">
        <rect>
@@ -346,9 +361,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>3</y>
         <width>411</width>
-        <height>281</height>
+        <height>261</height>
        </rect>
       </property>
       <item>
@@ -365,70 +380,51 @@
      <widget class="QTextEdit" name="txtLog">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>0</y>
+        <x>2</x>
+        <y>4</y>
         <width>511</width>
-        <height>281</height>
+        <height>261</height>
        </rect>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_4">
+    <widget class="QWidget" name="tab_5">
      <attribute name="title">
-      <string>Hash Panel</string>
+      <string>About</string>
      </attribute>
-     <widget class="QTextEdit" name="txtHashEdit">
+     <widget class="QTextEdit" name="textEdit">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>3</x>
         <y>0</y>
         <width>511</width>
-        <height>241</height>
+        <height>261</height>
        </rect>
       </property>
-     </widget>
-     <widget class="QPushButton" name="btnCreate">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>250</y>
-        <width>131</width>
-        <height>27</height>
-       </rect>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
-      <property name="text">
-       <string>Create Hash File</string>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Program&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;QHashKiller - Another HashCat GUI in QT&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;-----------&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;OS supported: Window, Linux, MacOS&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hashcat only (CPU hash killer)&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;-----------&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Author&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;SilverWolf@ceh.vn&lt;/span&gt; (&lt;a href=&quot;https://facebook.com/soibac&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;fb.com/soibac&lt;/span&gt;&lt;/a&gt;)&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://evildragon.info&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://evildragon.info&lt;/span&gt;&lt;/a&gt; or &lt;a href=&quot;http://evildragon.net&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://evildragon.net&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600; font-style:italic; color:#c20000;&quot;&gt;**A GIFT FOR ANBUTEAM**&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://anbuteam.info&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://anbuteam.info&lt;/span&gt;&lt;/a&gt; or &lt;a href=&quot;https://www.facebook.com/systemANBU&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;fb.com/systemANBU&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </widget>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>519</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionExit_GUI"/>
-    <addaction name="actionExit_HashCat"/>
-    <addaction name="actionExit_All"/>
-   </widget>
-   <widget class="QMenu" name="menuAbout">
-    <property name="title">
-     <string>About</string>
-    </property>
-    <addaction name="actionAuthor"/>
-    <addaction name="actionQHashcatGUi"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuAbout"/>
   </widget>
   <action name="actionExit_GUI">
    <property name="text">
