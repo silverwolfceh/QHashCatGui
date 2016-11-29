@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "config.h"
 #include <QUuid>
 #include <QFile>
 #include <QClipboard>
@@ -18,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    lastcnf = new config();
     crackingProcess = new QProcess(this);
     initializeHashType(ui->comboBox);
     initializeOutputType(ui->comboBox_2);
@@ -42,6 +44,46 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef Q_OS_WIN32
     ui->txtProg->setText("hashcat-cli32.exe");
 #endif
+#ifdef Q_OS_DARWIN
+    ui->txtProg->setText("/usr/local/bin/hashcat");
+#endif
+    if(lastcnf->lasthashpath != "")
+        ui->txtInputFile->setText(lastcnf->lasthashpath);
+    if(lastcnf->hashcatpath != "")
+        ui->txtProg->setText(lastcnf->hashcatpath);
+    if(lastcnf->separator != "")
+        ui->sep->setText(lastcnf->separator);
+    ui->tab_3->setFocus();
+    createActionText("idle");
+    if(lastcnf->lastdir != "")
+        lastdir = lastcnf->lastdir;
+    else
+        lastdir = QDir::currentPath();
+}
+
+QString MainWindow::createActionText(QString state)
+{
+    if(state == "idle")
+    {
+        QStringList caption;
+        caption << "Kill the bom";
+        caption << "Powered by ANBU!";
+        caption << "Expect us";
+        caption << "Design by SilverWolf";
+        caption << "Crack me please";
+        caption << "Power of ATOM";
+        caption << "..............Huhm";
+        int captNum = qrand() % caption.count();
+        ui->btnAction->setProperty("state", "idle");
+        ui->btnAction->setText(caption[captNum]);
+        return caption[captNum];
+    }
+    else
+    {
+        ui->btnAction->setProperty("state", "cracking");
+        ui->btnAction->setText("Stop");
+        return "Stop";
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -49,27 +91,13 @@ void MainWindow::closeEvent(QCloseEvent *)
     saveWordList();
 }
 
-void MainWindow::startCracking()
+QString MainWindow::getHashcatVer()
 {
-    QFileInfo file(ui->txtProg->text());
-    if(!file.exists())
-    {
-        QMessageBox msgBox(this);
-        msgBox.setText("Hashcat not found! Please download it");
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.exec();
-        QDesktopServices::openUrl(QUrl("http://hashcat.net/hashcat/"));
-        return;
-    }
-    QDir dir = file.absoluteDir();
-    if(dir.entryList(QStringList() << "eula.accepted").count() == 0)
-    {
-        QFile file(dir.path() + QDir::separator() + "eula.accepted");
-        file.open(QIODevice::ReadWrite | QIODevice::Text);
-        QTextStream out(&file);
-        out << "1\0";
-        file.close();
-    }
+    return QString::fromStdString("1.0");
+}
+
+QStringList MainWindow::commandV2()
+{
     QStringList args;
     args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
     args << "--outfile=" + ui->txtOutputFile->text(); //output
@@ -80,15 +108,77 @@ void MainWindow::startCracking()
     args << ui->txtInputFile->text(); //hash file
     for(int i = 0; i < ui->listWidget->count(); i++)
         args << ui->listWidget->item(i)->text();
-    ui->btnAction->setEnabled(false);
-    ui->tabWidget->setCurrentWidget(ui->tab_3);
-    crackingProcess->start(ui->txtProg->text(),args);
-    if(!crackingProcess->waitForStarted())
+    return args;
+}
+
+QStringList MainWindow::commandV3()
+{
+    QStringList args;
+    args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
+    args << "--outfile=" + ui->txtOutputFile->text(); //output
+    args << "--outfile-format=" + ui->comboBox_2->currentData().toString();
+    args << "-a 0"; //attack mode
+    args << "--separator=" + ui->sep->text(); //separator
+    args << "--workload-profile=3"; //work load high
+    args << "--status-timer=1"; //update timer
+    args << "--status";
+    args << "--force";
+    args << "--restore-disable";
+    args << ui->txtInputFile->text(); //hash file
+    for(int i = 0; i < ui->listWidget->count(); i++)
+        args <<  ui->listWidget->item(i)->text() ;
+    return args;
+}
+
+QStringList MainWindow::createCommand()
+{
+    return commandV3();
+}
+
+void MainWindow::startCracking()
+{
+    QString curstate = ui->btnAction->property("state").toString();
+    if(curstate == "cracking")
     {
-        ui->btnAction->setEnabled(true);
-        ui->txtLog->append("Start failed");
-        return;
+        createActionText("idle");
+        crackingProcess->terminate();
     }
+    else
+    {
+        QFileInfo file(ui->txtProg->text());
+        if(!file.exists())
+        {
+            QMessageBox msgBox(this);
+            msgBox.setText("Hashcat not found! Please download it");
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.exec();
+            QDesktopServices::openUrl(QUrl("http://hashcat.net/hashcat/"));
+            return;
+        }
+
+        QDir dir = file.absoluteDir();
+        if(dir.entryList(QStringList() << "eula.accepted").count() == 0)
+        {
+            QFile file(dir.path() + QDir::separator() + "eula.accepted");
+            file.open(QIODevice::ReadWrite | QIODevice::Text);
+            QTextStream out(&file);
+            out << "1\0";
+            file.close();
+        }
+
+        QStringList args = createCommand();
+        ui->txtLog->append("COMMAND: " + ui->txtProg->text() + " " + args.join(" "));
+        createActionText("cracking");
+        ui->tabWidget->setCurrentWidget(ui->tab_3);
+        crackingProcess->start(ui->txtProg->text(),args);
+        if(!crackingProcess->waitForStarted(60000))
+        {
+            createActionText("idle");
+            ui->txtLog->append("Start failed");
+            return;
+        }
+    }
+
 }
 
 void MainWindow::moveWordDown()
@@ -138,35 +228,23 @@ void MainWindow::moveWordUp()
 
 void MainWindow::saveWordList(QObject*)
 {
-    QString wordlist = "";
+    QStringList wl;
     for(int i = 0; i < ui->listWidget->count();i++)
-        wordlist.append(ui->listWidget->item(i)->text() + "\n");
-    wordlist = wordlist.trimmed();
-    QFile file("qhashgui.wl");
-    file.open(QIODevice::Truncate | QIODevice::ReadWrite | QIODevice::Text);
-    QTextStream out(&file);
-    out << wordlist;
-    file.close();
+        wl << ui->listWidget->item(i)->text();
+    lastcnf->wordlists = wl;
 }
 
 void MainWindow::loadWordList()
 {
     ui->listWidget->clear();
-    QFile file("qhashgui.wl");
-    if(!file.exists() || !file.open(QIODevice::ReadOnly))
-        return;
-    QTextStream in(&file);
-    while (!in.atEnd())
-    {
-        QString line = in.readLine();
-        if(line.trimmed().simplified().size() == 0) continue;
-        ui->listWidget->addItem(line.trimmed().simplified());
-    }
+    QStringList wl = lastcnf->wordlists;
+    for(int i =0; i < wl.count(); i++)
+        ui->listWidget->addItem(wl[i].trimmed().simplified());
 }
 
 void MainWindow::addWordList()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
     QFile file(fname);
     if(!file.exists())
     {
@@ -174,8 +252,10 @@ void MainWindow::addWordList()
         msgBox.setText("File " + fname + " is not exist!");
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
         return;
     }
+    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
     for(int i = 0; i < ui->listWidget->count();i++)
     {
         if(ui->listWidget->item(i)->text().compare(fname) == 0)
@@ -206,25 +286,19 @@ void MainWindow::showLog()
 void MainWindow::processStarted()
 {
     ui->tab_3->setFocus();
-    QStringList caption;
-    caption << "Crack me guy!";
-    caption << "Power by ANBU!";
-    caption << "ANBU Team";
-    caption << "Design by SilverWolf";
-    int captNum = qrand() % caption.count();
-    ui->btnAction->setText(caption[captNum]);
-
 }
 
-void MainWindow::processDone(int, QProcess::ExitStatus)
+void MainWindow::processDone(int code, QProcess::ExitStatus status)
 {
     ui->txtLog->append("-----Finished-----");
+    ui->txtLog->append(QString::number(code));
     ui->btnAction->setEnabled(true);
+    createActionText("idle");
 }
 
 void MainWindow::handleOpenSalt()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open salt file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open salt file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
     if(fname.simplified() == "") return;
     QFile file(fname);
     if(!file.exists())
@@ -233,14 +307,16 @@ void MainWindow::handleOpenSalt()
         msgBox.setText("File " + fname + " is not exist!");
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
         return;
     }
     ui->txtSalt->setText(fname);
+    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
 }
 
 void MainWindow::handleOpenProg()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open hashcat client file..."),QDir::currentPath(), tr("All Files (*.*)"));
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hashcat client file..."),lastdir , tr("All Files (*.*)"));
     if(fname.simplified() == "") return;
     QFile file(fname);
     if(!file.exists())
@@ -249,14 +325,16 @@ void MainWindow::handleOpenProg()
         msgBox.setText("File " + fname + " is not exist!");
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
         return;
     }
     ui->txtProg->setText(fname);
+    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
 }
 
 void MainWindow::handleOpenInput()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),QDir::currentPath(), tr("Text Files (*.txt);; All Files (*.*)"));
+    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),lastdir , tr("Text Files (*.txt);; All Files (*.*)"));
     QFile file(fname);
     if(!file.exists())
     {
@@ -264,14 +342,16 @@ void MainWindow::handleOpenInput()
         msgBox.setText("File " + fname + " is not exist!");
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
         return;
     }
     ui->txtInputFile->setText(fname);
+    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
 }
 
 void MainWindow::handleOpenOutput()
 {
-    QString fname = QFileDialog::getSaveFileName(this, tr("Output File..."),QDir::currentPath(), tr("Text Files (*.txt);;All Files (*)"));
+    QString fname = QFileDialog::getSaveFileName(this, tr("Output File..."),lastdir, tr("Text Files (*.txt);;All Files (*)"));
     QFile file(fname);
     if(file.exists())
     {
@@ -279,8 +359,10 @@ void MainWindow::handleOpenOutput()
         msgBox.setText("File " + fname + " will be override");
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
     }
     ui->txtOutputFile->setText(fname);
+    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
 }
 
 void MainWindow::handleClipboardHash()
@@ -321,6 +403,7 @@ void MainWindow::createHashFile()
 
 void MainWindow::initializeOutputType(QComboBox *com)
 {
+    bool setindex = false;
     outputTypeMap.insert(1,"hash[:salt]");
     outputTypeMap.insert(2,"plain");
     outputTypeMap.insert(3,"hash[:salt]:plain");
@@ -340,8 +423,14 @@ void MainWindow::initializeOutputType(QComboBox *com)
     for(int i = 0; i < Values.count(); i++)
     {
         com->addItem(Values[i],outputTypeMap.key(Values[i]));
+        if(outputTypeMap.key(Values[i]) == lastcnf->outputtype)
+        {
+            setindex = true;
+            com->setCurrentIndex(i);
+        }
     }
-    com->setCurrentIndex(2);
+    if(!setindex)
+        com->setCurrentIndex(2);
 
 }
 
@@ -467,10 +556,22 @@ void MainWindow::initializeHashType(QComboBox *com)
     for(int i = 0; i < Values.count(); i++)
     {
         com->addItem(Values[i],hashTypeMap.key(Values[i]));
+        if(hashTypeMap.key(Values[i]) == lastcnf->hashtype)
+            com->setCurrentIndex(i);
     }
 }
 
 MainWindow::~MainWindow()
 {
+    lastcnf->hashtype = hashTypeMap.key(this->ui->comboBox->currentText());
+    lastcnf->outputtype = outputTypeMap.key(this->ui->comboBox_2->currentText());
+    lastcnf->hashcatpath = this->ui->txtProg->text();
+    lastcnf->lasthashpath = this->ui->txtInputFile->text();
+    lastcnf->separator = this->ui->sep->text();
+    lastcnf->lastdir = lastdir;
+//    qDebug() << lastcnf->hashtype;
+//    qDebug() << lastcnf->outputtype;
+//    qDebug() << lastcnf->hashcatpath;
+    lastcnf->saveconfig();
     delete ui;
 }

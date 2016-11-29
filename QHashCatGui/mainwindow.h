@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QComboBox>
 #include <QProcess>
+#include "config.h"
 namespace Ui {
 class MainWindow;
 }
@@ -21,8 +22,15 @@ private:
     void initializeHashType(QComboBox *com);
     void initializeOutputType(QComboBox *com);
     void loadWordList();
+    QString getHashcatVer();
+    QStringList createCommand();
+    QStringList commandV2();
+    QStringList commandV3();
     QMap<int,QString> hashTypeMap;
     QMap<int,QString> outputTypeMap;
+    config *lastcnf;
+    QString createActionText(QString state);
+    QString lastdir;
 protected:
     void closeEvent(QCloseEvent * event);
 public slots:
