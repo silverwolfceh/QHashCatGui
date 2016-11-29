@@ -1,8 +1,20 @@
 # QHashCatGui
 
-A GUI for HashCat application based on QT
+A simple GUI for hashcat application, wrotten using QT5 framework.
 
-Download link for all versions:
-https://www.dropbox.com/sh/lz9h7uz1tat93ve/AAB9fV_3ZPtAuoyAp796sq8ea?dl=0
+Download links:
 
-# Credit to SilverWolf@ceh.vn
+1. MACOS (From El Capitain)
+https://drive.google.com/file/d/0B2Z8BqNeSmFbNS1ObWZ0N2pneDA/view
+
+2. Ubuntu 64bit
+https://drive.google.com/open?id=0B2Z8BqNeSmFbX3EzSjhhajJ1WGM
+
+-----------
+OS supported: Window, Linux, MacOS
+Hashcat only (CPU hash killer)
+-----------
+Author
+SilverWolf@ceh.vn (fb.com/soibac) http://evildragon.net
+
+Version: 2.0
