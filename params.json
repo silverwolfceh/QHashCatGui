@@ -1,1 +1,7 @@
-{"name":"Qhashcatgui","tagline":"Another GUI for HashCat application based on QT","body":"# QHashCatGui\r\n\r\nA GUI for HashCat application based on QT\r\n\r\nDownload link for all versions:\r\nhttps://www.dropbox.com/sh/lz9h7uz1tat93ve/AAB9fV_3ZPtAuoyAp796sq8ea?dl=0\r\n\r\n# Credit to SilverWolf@ceh.vn\r\n","google":"","note":"Don't delete this file! It's used internally to help with page regeneration."}
+{
+  "name": "Qhashcatgui",
+  "tagline": "Another GUI for HashCat application based on QT",
+  "body": "# QHashCatGui (Page: http://silverwolfceh.github.io/QHashCatGui)\r\n\r\nA simple GUI for hashcat application, wrotten using QT5 framework.\r\n\r\nDownload links:\r\n\r\n1. MACOS (From El Capitain)\r\nhttps://drive.google.com/file/d/0B2Z8BqNeSmFbNS1ObWZ0N2pneDA/view\r\n\r\n2. Ubuntu 64bit\r\nhttps://drive.google.com/open?id=0B2Z8BqNeSmFbX3EzSjhhajJ1WGM\r\n\r\n-----------\r\nOS supported: Window, Linux, MacOS\r\nHashcat only (CPU hash killer)\r\n-----------\r\nAuthor\r\nSilverWolf@ceh.vn (fb.com/soibac) http://evildragon.net\r\n\r\nVersion: 2.0\r\n",
+  "google": "",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
