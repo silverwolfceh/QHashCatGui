@@ -21,10 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     lastcnf = new config();
     crackingProcess = new QProcess(this);
+    initializeCPUProf(ui->cpuprofile);
     initializeHashType(ui->comboBox);
     initializeOutputType(ui->comboBox_2);
     loadWordList();
-    ui->txtSalt->setDisabled(true);
     connect(ui->btnclipboard,SIGNAL(clicked()),this,SLOT(handleClipboardHash()));
     connect(ui->btnBrowseInput,SIGNAL(clicked()),this,SLOT(handleOpenInput()));
     connect(ui->btnBrowseOutput,SIGNAL(clicked()),this,SLOT(handleOpenOutput()));
@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnCreate,SIGNAL(clicked()),this,SLOT(createHashFile()));
     connect(ui->btnAdd,SIGNAL(clicked()),this,SLOT(addWordList()));
     connect(ui->btnRemove,SIGNAL(clicked()),this,SLOT(deleteWordList()));
-    connect(ui->btnBrowseSalt,SIGNAL(clicked()),this,SLOT(handleOpenSalt()));
     connect(ui->btnBrowseProg,SIGNAL(clicked()),this,SLOT(handleOpenProg()));
     connect(ui->btnUp,SIGNAL(clicked()),this,SLOT(moveWordUp()));
     connect(ui->btnDown,SIGNAL(clicked()),this,SLOT(moveWordDown()));
@@ -99,35 +98,31 @@ QString MainWindow::getHashcatVer()
 QStringList MainWindow::commandV2()
 {
     QStringList args;
-    args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
-    args << "--outfile=" + ui->txtOutputFile->text(); //output
-    args << "--outfile-format=" + ui->comboBox_2->currentData().toString();
-    args << "--threads=" + ui->txtThread->text();
-    if(ui->txtSalt->text().simplified() != "")
-        args << "--salt-file=" + ui->txtSalt->text();
-    args << ui->txtInputFile->text(); //hash file
-    for(int i = 0; i < ui->listWidget->count(); i++)
-        args << ui->listWidget->item(i)->text();
+    args << "Sorry, we don't support this anymore";
     return args;
 }
 
 QStringList MainWindow::commandV3()
 {
+    int cpuprof = ui->cpuprofile->currentData().toInt();
+    QString rules = ui->txtrules->text();
     QStringList args;
     args << "--hash-type=" + ui->comboBox->currentData().toString(); //hashtype
     args << "--outfile=" + ui->txtOutputFile->text(); //output
     args << "--outfile-format=" + ui->comboBox_2->currentData().toString();
     args << "-a 0"; //attack mode
     args << "--separator=" + ui->sep->text(); //separator
-    args << "--workload-profile=3"; //work load high
+    args << "--workload-profile=" + QString::number(cpuprof);
     args << "--status-timer=1"; //update timer
     args << "--status";
     args << "--force";
-    args << "--potfile-disable";
     args << "--restore-disable";
+    args << "--potfile-disable";
     args << ui->txtInputFile->text(); //hash file
     for(int i = 0; i < ui->listWidget->count(); i++)
         args <<  ui->listWidget->item(i)->text() ;
+    if(!rules.isEmpty() && !rules.isNull())
+        args << "-r " + rules;
     return args;
 }
 
@@ -311,7 +306,6 @@ void MainWindow::handleOpenSalt()
         lastdir = QFileInfo(fname).absoluteDir().absolutePath();
         return;
     }
-    ui->txtSalt->setText(fname);
     lastdir = QFileInfo(fname).absoluteDir().absolutePath();
 }
 
@@ -433,6 +427,16 @@ void MainWindow::initializeOutputType(QComboBox *com)
     if(!setindex)
         com->setCurrentIndex(2);
 
+}
+
+void MainWindow::initializeCPUProf(QComboBox *com)
+{
+    int profile = 4;
+    for(int i = 0; i < com->count(); i++)
+    {
+        com->setItemData(i,profile);
+        profile--;
+    }
 }
 
 void MainWindow::initializeHashType(QComboBox *com)

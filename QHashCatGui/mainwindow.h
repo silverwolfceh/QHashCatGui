@@ -21,6 +21,7 @@ private:
     Ui::MainWindow *ui;
     void initializeHashType(QComboBox *com);
     void initializeOutputType(QComboBox *com);
+    void initializeCPUProf(QComboBox *com);
     void loadWordList();
     QString getHashcatVer();
     QStringList createCommand();
