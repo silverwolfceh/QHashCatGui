@@ -123,6 +123,7 @@ QStringList MainWindow::commandV3()
     args << "--status-timer=1"; //update timer
     args << "--status";
     args << "--force";
+    args << "--potfile-disable";
     args << "--restore-disable";
     args << ui->txtInputFile->text(); //hash file
     for(int i = 0; i < ui->listWidget->count(); i++)
