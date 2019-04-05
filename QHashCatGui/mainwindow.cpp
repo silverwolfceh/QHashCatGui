@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDesktopServices>
-
+#include <QKeyEvent>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     initializeOutputType(ui->comboBox_2);
     loadWordList();
     ui->txtSalt->setDisabled(true);
+	ui->txtLog->installEventFilter(this);
+	//connect(ui->txtLog,SIGNAL(keyPressEvent()),this,SLOT(handleKeyPress()));
     connect(ui->btnclipboard,SIGNAL(clicked()),this,SLOT(handleClipboardHash()));
     connect(ui->btnBrowseInput,SIGNAL(clicked()),this,SLOT(handleOpenInput()));
     connect(ui->btnBrowseOutput,SIGNAL(clicked()),this,SLOT(handleOpenOutput()));
@@ -86,6 +88,35 @@ QString MainWindow::createActionText(QString state)
     }
 }
 
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->txtLog) {
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+			if (keyEvent->key() == Qt::Key_Q)
+            {
+				crackingProcess->terminate();
+				return true;
+			}
+            return false;
+        } else {
+            return false;
+        }
+    } else {
+        // pass the event on to the parent class
+        return QMainWindow::eventFilter(obj, event);
+    }
+}
+
+void MainWindow::handleKeyPress(QKeyEvent* e)
+{
+	if (e->key()==Qt::Key_Q)
+	{
+		qDebug() << "Q key pressed";
+	}
+	//QTextEdit::keyPressEvent(e);
+}
+
 void MainWindow::closeEvent(QCloseEvent *)
 {
     saveWordList();
@@ -127,7 +158,7 @@ QStringList MainWindow::commandV3()
     args << "--restore-disable";
     args << ui->txtInputFile->text(); //hash file
     for(int i = 0; i < ui->listWidget->count(); i++)
-        args <<  ui->listWidget->item(i)->text() ;
+        args <<  "\"" + ui->listWidget->item(i)->text() + "\"" ;
     return args;
 }
 
@@ -171,7 +202,14 @@ void MainWindow::startCracking()
         ui->txtLog->append("COMMAND: " + ui->txtProg->text() + " " + args.join(" "));
         createActionText("cracking");
         ui->tabWidget->setCurrentWidget(ui->tab_3);
-        crackingProcess->start(ui->txtProg->text(),args);
+
+		QString completeCmd = ui->txtProg->text();
+		foreach (QString arg, args)
+		{
+			completeCmd += " " + arg;
+		}
+        crackingProcess->start(completeCmd);
+
         if(!crackingProcess->waitForStarted(60000))
         {
             createActionText("idle");
@@ -245,30 +283,33 @@ void MainWindow::loadWordList()
 
 void MainWindow::addWordList()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
-    QFile file(fname);
-    if(!file.exists())
-    {
-        QMessageBox msgBox(this);
-        msgBox.setText("File " + fname + " is not exist!");
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.exec();
-        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
-        return;
-    }
-    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
-    for(int i = 0; i < ui->listWidget->count();i++)
-    {
-        if(ui->listWidget->item(i)->text().compare(fname) == 0)
-        {
-            QMessageBox msgBox(this);
-            msgBox.setText("Wordlist " + fname + " is already exist!");
-            msgBox.setIcon(QMessageBox::Warning);
-            msgBox.exec();
-            return;
-        }
-    }
-    ui->listWidget->addItem(fname);
+    QStringList fnames = QFileDialog::getOpenFileNames(this,tr("Open hash file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
+	foreach (QString fname, fnames)
+	{
+		QFile file(fname);
+    	if(!file.exists())
+    	{
+        	QMessageBox msgBox(this);
+        	msgBox.setText("File " + fname + " is not exist!");
+        	msgBox.setIcon(QMessageBox::Warning);
+        	msgBox.exec();
+        	lastdir = QFileInfo(fname).absoluteDir().absolutePath();
+        	return;
+    	}
+    	lastdir = QFileInfo(fname).absoluteDir().absolutePath();
+    	for(int i = 0; i < ui->listWidget->count();i++)
+    	{
+        	if(ui->listWidget->item(i)->text().compare(fname) == 0)
+        	{
+            	QMessageBox msgBox(this);
+            	msgBox.setText("Wordlist " + fname + " is already exist!");
+            	msgBox.setIcon(QMessageBox::Warning);
+            	msgBox.exec();
+            	return;
+        	}
+    	}
+    	ui->listWidget->addItem(fname);
+	}
 }
 
 void MainWindow::deleteWordList()
@@ -281,6 +322,10 @@ void MainWindow::deleteWordList()
 void MainWindow::showLog()
 {
     ui->txtLog->append(crackingProcess->readAllStandardOutput());
+	// scroll to bottom
+	QTextCursor c = ui->txtLog->textCursor();
+	c.movePosition(QTextCursor::End);
+	ui->txtLog->setTextCursor(c);
 }
 
 
