@@ -245,30 +245,33 @@ void MainWindow::loadWordList()
 
 void MainWindow::addWordList()
 {
-    QString fname = QFileDialog::getOpenFileName(this,tr("Open hash file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
-    QFile file(fname);
-    if(!file.exists())
+    QStringList fnames = QFileDialog::getOpenFileNames(this,tr("Open hash file..."),lastdir, tr("Text Files (*.txt);; All Files (*.*)"));
+    foreach (QString fname, fnames)
     {
-        QMessageBox msgBox(this);
-        msgBox.setText("File " + fname + " is not exist!");
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.exec();
-        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
-        return;
-    }
-    lastdir = QFileInfo(fname).absoluteDir().absolutePath();
-    for(int i = 0; i < ui->listWidget->count();i++)
-    {
-        if(ui->listWidget->item(i)->text().compare(fname) == 0)
+        QFile file(fname);
+        if(!file.exists())
         {
             QMessageBox msgBox(this);
-            msgBox.setText("Wordlist " + fname + " is already exist!");
+            msgBox.setText("File " + fname + " is not exist!");
             msgBox.setIcon(QMessageBox::Warning);
             msgBox.exec();
+            lastdir = QFileInfo(fname).absoluteDir().absolutePath();
             return;
         }
+        lastdir = QFileInfo(fname).absoluteDir().absolutePath();
+        for(int i = 0; i < ui->listWidget->count();i++)
+        {
+            if(ui->listWidget->item(i)->text().compare(fname) == 0)
+            {
+                QMessageBox msgBox(this);
+                msgBox.setText("Wordlist " + fname + " is already exist!");
+                msgBox.setIcon(QMessageBox::Warning);
+                msgBox.exec();
+                return;
+            }
+        }
+        ui->listWidget->addItem(fname);
     }
-    ui->listWidget->addItem(fname);
 }
 
 void MainWindow::deleteWordList()
