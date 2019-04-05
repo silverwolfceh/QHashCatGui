@@ -21,6 +21,8 @@ private:
     Ui::MainWindow *ui;
     void initializeHashType(QComboBox *com);
     void initializeOutputType(QComboBox *com);
+    bool eventFilter(QObject *obj, QEvent *event);
+    void handleKeyPress(QKeyEvent* e);
     void loadWordList();
     QString getHashcatVer();
     QStringList createCommand();
