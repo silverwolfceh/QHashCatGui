@@ -33,7 +33,9 @@ private:
     QString lastdir;
 protected:
     void closeEvent(QCloseEvent * event);
+	bool eventFilter(QObject *obj, QEvent *ev);
 public slots:
+	void handleKeyPress(QKeyEvent *e);
     void handleClipboardHash();
     void handleOpenInput();
     void handleOpenOutput();
