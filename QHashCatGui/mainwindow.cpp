@@ -240,7 +240,7 @@ void MainWindow::moveWordDown()
     ui->listWidget->insertItem(cur,below);
     ui->listWidget->takeItem(cur+1);
     ui->listWidget->insertItem(cur+1,current);
-
+	ui->listWidget->setCurrentRow(cur+1);
 }
 
 void MainWindow::moveWordUp()
@@ -259,10 +259,11 @@ void MainWindow::moveWordUp()
     int cur = ui->listWidget->row(listItems[0]);
     QString above = ui->listWidget->item(cur - 1)->text();
     QString current = ui->listWidget->item(cur)->text();
-    ui->listWidget->takeItem(cur);
+	ui->listWidget->takeItem(cur);
     ui->listWidget->insertItem(cur,above);
-    ui->listWidget->takeItem(cur-1);
+	ui->listWidget->takeItem(cur-1);
     ui->listWidget->insertItem(cur-1,current);
+	ui->listWidget->setCurrentRow(cur-1);
 }
 
 void MainWindow::saveWordList(QObject*)

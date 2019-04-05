@@ -17,7 +17,13 @@
    <iconset>
     <normaloff>../../1.jpg</normaloff>../../1.jpg</iconset>
   </property>
+  <property name="windowOpacity">
+   <double>100.000000000000000</double>
+  </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
@@ -28,7 +34,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -96,6 +102,9 @@
         <width>41</width>
         <height>17</height>
        </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
       </property>
       <property name="text">
        <string>Input</string>
@@ -464,9 +473,9 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;Hashcat only (CPU hash killer)&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;-----------&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif'; font-weight:600; text-decoration: underline;&quot;&gt;Author&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif'; font-style:italic;&quot;&gt;SilverWolf@ceh.vn&lt;/span&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt; (&lt;/span&gt;&lt;a href=&quot;https://facebook.com/soibac&quot;&gt;&lt;span style=&quot; font-family:'Serif'; text-decoration: underline; color:#0000ff;&quot;&gt;fb.com/soibac&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;) &lt;/span&gt;&lt;a href=&quot;http://evildragon.net&quot;&gt;&lt;span style=&quot; font-family:'Serif'; text-decoration: underline; color:#0000ff;&quot;&gt;http://evildragon.net&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif'; font-style:italic;&quot;&gt;tongvuu@gmail.com&lt;/span&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt; (&lt;/span&gt;&lt;a href=&quot;https://facebook.com/soibac&quot;&gt;&lt;span style=&quot; font-family:'Serif'; text-decoration: underline; color:#0000ff;&quot;&gt;fb.com/soibac&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;) &lt;/span&gt;&lt;a href=&quot;http://evildragon.net&quot;&gt;&lt;span style=&quot; font-family:'Serif'; text-decoration: underline; color:#0000ff;&quot;&gt;http://evildragon.net&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Serif';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;Version: 2.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Serif';&quot;&gt;Version: 2.1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </widget>
